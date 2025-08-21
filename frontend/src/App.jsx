@@ -2,16 +2,62 @@ import { useState } from "react";
 import "./App.css";
 import { BottleSelector, Branding, Header } from "./components";
 import image1 from "./assets/image.png"
+
 function App() {
   const [count, setCount] = useState(0);
 
   return (
     <>
-      <div className=" justify-center items-center min-h-screen bg-[#EAF3FF]">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100">
         <Header/>
-        <Branding source = {image1}/>
-        <BottleSelector />
-        <Branding />
+        
+        {/* Hero Section */}
+        <div className="relative overflow-hidden">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-indigo-600/10"></div>
+          <div className="absolute top-10 left-10 w-72 h-72 bg-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-indigo-300/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          
+          {/* Main content */}
+          <div className="relative z-10 flex flex-col items-center justify-center py-12 px-4">
+            {/* Welcome Section */}
+            <div className="text-center mb-8 max-w-2xl">
+              {/* Brand Title */}
+              <div className="mb-6">
+                <h1 className="text-3xl md:text-5xl font-bold text-indigo-800 mb-2 tracking-wide">
+                  <span className="bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 bg-clip-text text-transparent">
+                    Foodle-Jal
+                  </span>
+                </h1>
+                <div className="flex items-center justify-center">
+                  <div className="h-1 w-16 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full"></div>
+                </div>
+              </div>
+              
+              <h2 className="text-2xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-indigo-800 bg-clip-text text-transparent mb-4">
+                Pure Water, Pure Life
+              </h2>
+              <div className="flex items-center justify-center gap-4 text-sm text-indigo-600 font-medium">
+                <span className="flex items-center gap-1">  
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                  Fresh & Pure
+                </span>
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                  Secure Payment
+                </span>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <Branding source={image1}/>
+            </div>
+
+            <BottleSelector />
+
+            <Branding source = ""/>
+          </div>
+        </div>
       </div>  
     </>
   );

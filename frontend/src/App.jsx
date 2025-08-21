@@ -6,11 +6,11 @@ function App() {
 
   return (
     <>
-    <div className="flex justify-center items-center min-h-screen bg-[#EAF3FF]">
-      <Header/>
-      <div className="text-black text-5xl font-sans">Fooddle Jal 💦</div>
+      <div className=" justify-center items-center min-h-screen bg-[#EAF3FF]">
+        <Header/>
         <Branding/>
         <BottleSelector />
+        <Branding/>
       </div>  
     </>
   );

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import  { useCallback, useEffect, useState } from 'react';
 
 export default function BottleSelector(){
     const [input,setInput] = useState(0);
@@ -18,23 +18,23 @@ export default function BottleSelector(){
     useEffect(()=>{PriceCalculator()},[input])
 
     return(
-        <div className="text-black p-4 space-y-4 max-w-sm mx-auto border rounded-2xl shadow">
-            <h2 className="text-xl font-semibold">Bottle</h2>
-            <div className="flex items-center gap-4">
+        <div className="bg-white text-indigo-900 p-6 max-w-sm w-full mx-auto mt-6 border rounded-2xl shadow-lg flex flex-col items-center space-y-5">
+            <h2 className="text-2xl font-bold text-indigo-600">Bottle</h2>
+            <div className="flex items-center gap-6">
                 <button 
                 onClick={subtracter}
-                className='px-3 py-1 bg-blue-300 text-white rounded-lg hover:bg-blue-500'>
+                className='px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition'>
                     -
                 </button>
-                <span className="text-lg font-medium">{input}</span>
+                <span className="text-2xl font-semibold">{input}</span>
                 <button 
                 onClick={adder}
-                className='px-3 py-1 bg-blue-300 text-white rounded-lg hover:bg-blue-500'>
+                className='px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition'>
                     +
                 </button>
             </div>
-            <div className='text-lg'>
-                 Total Price: <span className="font-bold">₹{price}</span>
+            <div className='text-lg font-medium'>
+                 Total Price: <span className="font-bold text-indigo-700">₹{price}</span>
             </div>
         </div>
     )

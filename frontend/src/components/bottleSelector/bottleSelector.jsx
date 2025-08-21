@@ -11,7 +11,7 @@ export default function BottleSelector(){
         if(input > 0) setInput(input - 1)
     }
 
-    const PriceCalculator = useCallback((cost = 10) => {
+    const PriceCalculator = useCallback((cost = 20) => {
         setPrice(cost*input)
     },[input,setPrice])
 
@@ -19,7 +19,7 @@ export default function BottleSelector(){
 
     return(
         <div className="bg-white text-indigo-900 p-6 max-w-sm w-full mx-auto mt-6 border rounded-2xl shadow-lg flex flex-col items-center space-y-5">
-            <h2 className="text-2xl font-bold text-indigo-600">Bottle</h2>
+            <h2 className="text-2xl font-bold text-indigo-600">Water Bottle</h2>
             <div className="flex items-center gap-6">
                 <button 
                 onClick={subtracter}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import { BottleSelector, Branding, Header } from "./components";
+import image1 from "./assets/image.png"
 function App() {
   const [count, setCount] = useState(0);
 
@@ -8,9 +9,9 @@ function App() {
     <>
       <div className=" justify-center items-center min-h-screen bg-[#EAF3FF]">
         <Header/>
-        <Branding/>
+        <Branding source = {image1}/>
         <BottleSelector />
-        <Branding/>
+        <Branding />
       </div>  
     </>
   );

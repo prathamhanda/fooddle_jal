@@ -57,7 +57,7 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
     };
 
     // UPI Deep Link Payment
-    const upiVPA = "prathamhanda10@okhdfcbank"; 
+    const upiVPA = "9518209404@pthdfc"; 
     const upiName = "Fooddle";
     const upiNote = `Payment for ${quantity} Water Bottle${quantity !== 1 ? 's' : ''}`;
 

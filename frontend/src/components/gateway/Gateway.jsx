@@ -205,27 +205,8 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                                     <div className="font-semibold text-indigo-800 flex items-center">
                                         <CreditCard className="mr-2" size={18} />
                                         Online Payment (Razorpay)
-                                        <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Recommended</span>
                                     </div>
                                     <div className="text-sm text-gray-600">Secure payment via UPI, Cards, Net Banking</div>
-                                </div>
-                            </label>
-                            
-                            <label className="flex items-center space-x-3 p-3 border border-indigo-200 rounded-xl hover:bg-indigo-50 cursor-pointer transition-all">
-                                <input
-                                    type="radio"
-                                    name="paymentMethod"
-                                    value="simple"
-                                    checked={paymentMethod === 'simple'}
-                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                    className="text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <div className="flex-1">
-                                    <div className="font-semibold text-indigo-800 flex items-center">
-                                        <Phone className="mr-2" size={18} />
-                                        Quick Order (Contact Based)
-                                    </div>
-                                    <div className="text-sm text-gray-600">Place order now, pay on delivery</div>
                                 </div>
                             </label>
                         </div>

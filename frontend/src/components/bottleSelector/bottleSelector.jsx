@@ -15,7 +15,7 @@ export default function BottleSelector(){
         if(input > 0) setInput(input - 1)
     }
 
-    const PriceCalculator = useCallback((cost = 2) => {
+    const PriceCalculator = useCallback((cost = 20) => {
         setPrice(cost*input)
     },[input,setPrice])
 

@@ -1,14 +1,4 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
   "routes": [
     {
       "handle": "filesystem"
@@ -17,11 +7,5 @@
       "src": "/.*",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_API_BASE_URL": "@vite_api_base_url",
-    "VITE_GOOGLE_SHEETS_ID": "@vite_google_sheets_id",
-    "VITE_GOOGLE_API_KEY": "@vite_google_api_key",
-    "VITE_GOOGLE_APPS_SCRIPT_URL": "@vite_google_apps_script_url"
-  }
+  ]
 }

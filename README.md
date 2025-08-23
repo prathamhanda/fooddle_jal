@@ -23,9 +23,7 @@ Students selected quantity, entered their phone number, and were redirected to a
 
 ## **Interface (Scrollable Page)**
 
-**Top Section**  
-<img src="./frontend/src/assets/interface-1.png" width="20%" height="20%">
-
-
-**Bottom Section**  
-<img src="./frontend/src/assets/interface-2.png" width="20%" height="20%">
+<p align="center">
+  <img src="./frontend/src/assets/interface-1.png" width="45%" height="400px" />
+  <img src="./frontend/src/assets/interface-2.png" width="45%" height="393px" />
+</p>

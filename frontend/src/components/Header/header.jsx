@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Droplets, Shield, Truck, Download, TestTube, Settings } from 'lucide-react'
+import Ham from '../menu/menu';
 import logo from "../../assets/logo.png"
 import { initializeHeaders } from '../../api/googleSheetsService';
 
@@ -51,62 +51,7 @@ export default function Header(){
                     </div>
                 </div>
 
-                {/* Right Section - Enhanced */}
-                <div className="flex items-center space-x-4">
-                    {/* Initialize Sheet Button */}
-                    <button 
-                        onClick={handleInitializeSheet}
-                        className="text-purple-700 hover:text-purple-900 p-3 rounded-xl hover:bg-purple-200/40 backdrop-blur-sm transition-all duration-300 group border border-purple-300/50 hover:border-purple-400/70 hidden sm:flex items-center space-x-2"
-                        title="Initialize Google Sheet Headers"
-                    >
-                        <Settings size={20} className="transform group-hover:scale-110 transition-all duration-300" />
-                        <span className="text-sm font-medium">Init Sheet</span>
-                    </button>
-
-                    {/* Test Google Sheets Button */}
-                    <button 
-                        onClick={handleTestGoogleSheets}
-                        className="text-blue-700 hover:text-blue-900 p-3 rounded-xl hover:bg-blue-200/40 backdrop-blur-sm transition-all duration-300 group border border-blue-300/50 hover:border-blue-400/70 hidden sm:flex items-center space-x-2"
-                        title="Test Google Sheets API"
-                    >
-                        <TestTube size={20} className="transform group-hover:scale-110 transition-all duration-300" />
-                        <span className="text-sm font-medium">Test API</span>
-                    </button>
-
-                    {/* Test Google Sheets Button - Mobile */}
-                    <button 
-                        onClick={handleTestGoogleSheets}
-                        className="text-blue-700 hover:text-blue-900 p-3 rounded-xl hover:bg-blue-200/40 backdrop-blur-sm transition-all duration-300 group border border-blue-300/50 hover:border-blue-400/70 sm:hidden"
-                        title="Test Google Sheets API"
-                    >
-                        <TestTube size={20} className="transform group-hover:scale-110 transition-all duration-300" />
-                    </button>
-
-                    {/* Download Excel Button */}
-                    <button 
-                        onClick={handleDownloadExcel}
-                        className="text-green-700 hover:text-green-900 p-3 rounded-xl hover:bg-green-200/40 backdrop-blur-sm transition-all duration-300 group border border-green-300/50 hover:border-green-400/70 hidden sm:flex items-center space-x-2"
-                        title="Download Local Backup Excel"
-                    >
-                        <Download size={20} className="transform group-hover:scale-110 transition-all duration-300" />
-                        <span className="text-sm font-medium">Backup Data</span>
-                    </button>
-
-                    {/* Download Excel Button - Mobile */}
-                    <button 
-                        onClick={handleDownloadExcel}
-                        className="text-green-700 hover:text-green-900 p-3 rounded-xl hover:bg-green-200/40 backdrop-blur-sm transition-all duration-300 group border border-green-300/50 hover:border-green-400/70 sm:hidden"
-                        title="Download Local Backup Excel"
-                    >
-                        <Download size={20} className="transform group-hover:scale-110 transition-all duration-300" />
-                    </button>
-                    
-                    {/* Menu Button - updated for light background */}
-                    <button className="text-indigo-700 hover:text-indigo-900 p-3 rounded-xl hover:bg-indigo-200/40 backdrop-blur-sm transition-all duration-300 group border border-indigo-300/50 hover:border-indigo-400/70">
-                        <Menu size={24} className="sm:hidden transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" /> 
-                        <Menu size={26} className="hidden sm:block transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
-                    </button>
-                </div>
+                <Ham />
             </div>
         </header>
     )

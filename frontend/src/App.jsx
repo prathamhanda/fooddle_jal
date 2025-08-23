@@ -26,7 +26,7 @@ function App() {
               <div className="mb-6">
                 <h1 className="text-3xl md:text-5xl font-bold text-indigo-800 mb-2 tracking-wide">
                   <span className="bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 bg-clip-text text-transparent">
-                    Foodle-Jal
+                    Fooddle
                   </span>
                 </h1>
                 <div className="flex items-center justify-center">
@@ -34,17 +34,14 @@ function App() {
                 </div>
               </div>
               
-              <h2 className="text-2xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-indigo-800 bg-clip-text text-transparent mb-4">
-                Pure Water, Pure Life
-              </h2>
               <div className="flex items-center justify-center gap-4 text-sm text-indigo-600 font-medium">
                 <span className="flex items-center gap-1">  
                   <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                  Fresh & Pure
+                  One-Click Access
                 </span>
                 <span className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                  Secure Payment
+                  Smart Shopping
                 </span>
               </div>
             </div>

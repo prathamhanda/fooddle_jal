@@ -7,7 +7,7 @@ import { PhoneInput } from '../index';
 export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentFailure }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState('');
-    const [customerPhone, setCustomerPhone] = useState(''); // Changed from phoneNumber
+    const [customerPhone, setCustomerPhone] = useState(''); 
     const [showPhoneInput, setShowPhoneInput] = useState(true);
     const [error, setError] = useState(''); // Added error state
 

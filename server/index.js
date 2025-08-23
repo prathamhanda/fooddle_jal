@@ -43,7 +43,19 @@ app.get('/api/health', (req, res) => {
     res.status(200).json({ 
         status: 'Server is running',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        allowedOrigins: process.env.NODE_ENV === 'production' 
+            ? ['https://fooddle-jal.vercel.app', process.env.FRONTEND_URL].filter(Boolean)
+            : ['http://localhost:5173', 'http://localhost:3000']
+    });
+});
+
+// === CORS TEST ENDPOINT ===
+app.get('/api/test-cors', (req, res) => {
+    res.status(200).json({ 
+        message: 'CORS is working!',
+        origin: req.get('origin'),
+        timestamp: new Date().toISOString()
     });
 });
 

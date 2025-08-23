@@ -57,7 +57,7 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
     };
 
     // UPI Deep Link Payment
-    const upiVPA = "prathamhanda10@okhdfcbank"; // TODO: Replace with your UPI ID
+    const upiVPA = "prathamhanda10@okhdfcbank"; 
     const upiName = "Fooddle";
     const upiNote = `Payment for ${quantity} Water Bottle${quantity !== 1 ? 's' : ''}`;
 
@@ -70,7 +70,7 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
         setPaymentStatus('');
 
         // Construct UPI deep link
-        const upiUrl = `upi://pay?pa=${encodeURIComponent(upiVPA)}&pn=${encodeURIComponent(upiName)}&am=${encodeURIComponent(amount)}&cu=INR&tn=${encodeURIComponent(upiNote)}`;
+        const upiUrl = `upi://pay?pa=${upiVPA}&pn=${encodeURIComponent(upiName)}&am=${encodeURIComponent(amount)}&cu=INR&tn=${encodeURIComponent(upiNote)}`;
         window.location.href = upiUrl;
         // Optionally, you can also show a QR code for desktop users
         setTimeout(() => {

@@ -1,10 +1,60 @@
 import React, { useState } from 'react';
-import { CreditCard, Loader2, CheckCircle, XCircle, Lock, Shield } from 'lucide-react';
+import { CreditCard, Loader2, CheckCircle, XCircle, Lock, Shield, Phone } from 'lucide-react';
 import { paymentAPI, getRazorpayKey } from '../../api/paymentService';
+import { saveOrderData } from '../../api/googleSheetsService';
+import { PhoneInput } from '../index';
 
 export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentFailure }) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState('');
+    const [customerPhone, setCustomerPhone] = useState(''); // Changed from phoneNumber
+    const [showPhoneInput, setShowPhoneInput] = useState(true);
+    const [error, setError] = useState(''); // Added error state
+
+    const handlePhoneSubmit = async (phoneNumber) => {
+        try {
+            setIsProcessing(true);
+            setError('');
+            console.log('🔄 Gateway: Processing phone number submission for:', phoneNumber);
+            
+            // Validate phone number
+            if (!phoneNumber || phoneNumber.length < 10) {
+                throw new Error('Please enter a valid phone number');
+            }
+            
+            console.log('📞 Gateway: Phone number validated:', phoneNumber);
+            console.log('💾 Gateway: Saving order data to Google Sheets immediately...', {
+                phoneNumber: phoneNumber,
+                amount: amount,
+                quantity: quantity
+            });
+            
+            // Save order data to Google Sheets immediately when user clicks Proceed
+            const saveResult = await saveOrderData({
+                phoneNumber: phoneNumber,
+                amount: amount
+            });
+            
+            if (saveResult.success) {
+                console.log('✅ Gateway: Order data saved to Google Sheets successfully');
+            } else {
+                console.warn('⚠️ Gateway: Google Sheets save failed:', saveResult.error);
+                // Don't block the user flow due to Google Sheets issue, but show a warning
+                setError('Data save warning: Your order will be processed, but there was an issue saving to our records.');
+            }
+            
+            // Store phone number and proceed to payment
+            setCustomerPhone(phoneNumber);
+            setShowPhoneInput(false);
+            console.log('✅ Gateway: Phone number stored and data saved, ready for payment');
+            
+        } catch (error) {
+            console.error('❌ Gateway: Error in handlePhoneSubmit:', error);
+            setError(`Error: ${error.message}. Please try again.`);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
 
     // Initialize Razorpay payment
     const initiatePayment = async () => {
@@ -22,9 +72,11 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                 amount: amount * 100, // Razorpay expects amount in paise
                 currency: 'INR',
                 receipt: `receipt_${Date.now()}`,
+                phoneNumber: customerPhone,
                 notes: {
                     bottles: quantity,
-                    product: 'Water Bottles'
+                    product: 'Water Bottles',
+                    customerPhone: customerPhone
                 }
             });
 
@@ -46,7 +98,7 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                 prefill: {
                     name: 'Customer',
                     email: 'customer@foodle.com',
-                    contact: '+91XXXXXXXXXX'
+                    contact: customerPhone // Use the provided phone number
                 },
                 theme: {
                     color: '#4F46E5' // Indigo color matching your theme
@@ -81,6 +133,8 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
     // Verify payment using API service
     const verifyPayment = async (response) => {
         try {
+            console.log('🔍 Gateway: Starting payment verification...');
+            
             const verificationResponse = await paymentAPI.verifyPayment({
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
@@ -88,18 +142,21 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
             });
 
             if (verificationResponse.data.success) {
+                console.log('✅ Gateway: Payment verified successfully');
+                
                 setPaymentStatus('success');
                 if (onPaymentSuccess) {
                     onPaymentSuccess(response);
                 }
             } else {
+                console.error('❌ Gateway: Payment verification failed');
                 setPaymentStatus('error');
                 if (onPaymentFailure) {
                     onPaymentFailure('Payment verification failed');
                 }
             }
         } catch (error) {
-            console.error('Payment verification failed:', error);
+            console.error('❌ Gateway: Payment verification error:', error);
             setPaymentStatus('error');
             if (onPaymentFailure) {
                 onPaymentFailure(error);
@@ -107,6 +164,24 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
         }
         setIsProcessing(false);
     };
+
+    // Show phone input first
+    if (showPhoneInput) {
+        return (
+            <div className="space-y-6">
+                {/* Order Summary Header */}
+                <div className="bg-white/90 backdrop-blur-lg text-indigo-900 p-6 border border-white/20 rounded-3xl shadow-xl text-center">
+                    <h3 className="text-xl font-bold text-indigo-800 mb-2">Order Summary</h3>
+                    <p className="text-gray-600">
+                        {quantity} Water Bottle{quantity !== 1 ? 's' : ''} - ₹{amount}
+                    </p>
+                </div>
+
+                {/* Phone Input */}
+                <PhoneInput onPhoneSubmit={handlePhoneSubmit} />
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white/90 backdrop-blur-lg text-indigo-900 p-8 border border-white/20 rounded-3xl shadow-2xl relative overflow-hidden">
@@ -125,6 +200,25 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                     </h2>
                     <p className="text-gray-600 text-sm">Complete your order safely</p>
                 </div>
+                
+                {/* Customer Info */}
+                {customerPhone && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl mb-6 border border-blue-100">
+                        <div className="flex items-center justify-between">
+                            <span className="text-gray-700 font-medium">Customer Phone:</span>
+                            <span className="font-semibold text-indigo-800">{customerPhone}</span>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                setShowPhoneInput(true);
+                                setCustomerPhone('');
+                            }}
+                            className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 underline"
+                        >
+                            Change phone number?
+                        </button>
+                    </div>
+                )}
                 
                 {/* Order Summary */}
                 <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-2xl mb-6 border border-indigo-100">
@@ -149,13 +243,24 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                     </div>
                 </div>
 
+                {/* Error Display */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-4 rounded-2xl mb-6 flex items-center shadow-sm">
+                        <XCircle className="mr-3 text-red-500" size={24} />
+                        <div>
+                            <div className="font-semibold">Error</div>
+                            <div className="text-sm text-red-600">{error}</div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Payment Status */}
                 {paymentStatus === 'success' && (
                     <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-4 rounded-2xl mb-6 flex items-center shadow-sm">
                         <CheckCircle className="mr-3 text-green-500" size={24} />
                         <div>
                             <div className="font-semibold">Payment Successful!</div>
-                            <div className="text-sm text-green-600">Your order has been confirmed</div>
+                            <div className="text-sm text-green-600">Your order has been confirmed and data saved</div>
                         </div>
                     </div>
                 )}
@@ -185,9 +290,9 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                 {/* Pay Now Button */}
                 <button
                     onClick={initiatePayment}
-                    disabled={isProcessing || amount <= 0}
+                    disabled={isProcessing || amount <= 0 || !customerPhone}
                     className={`w-full py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-3 ${
-                        isProcessing || amount <= 0
+                        isProcessing || amount <= 0 || !customerPhone
                             ? 'bg-gray-300 cursor-not-allowed text-gray-500'
                             : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-green-500/25 text-white'
                     }`}

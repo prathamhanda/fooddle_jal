@@ -1,0 +1,21 @@
+{
+  "name": "fooddle-fullstack",
+  "version": "1.0.0",
+  "description": "Fooddle - Water Bottle Ordering System with Razorpay Integration",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd frontend && npm run dev",
+    "install:all": "npm run install:server && npm run install:client",
+    "install:server": "cd server && npm install",
+    "install:client": "cd frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "start": "cd server && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["fooddle", "razorpay", "react", "express", "payment"],
+  "author": "Your Name",
+  "license": "MIT"
+}

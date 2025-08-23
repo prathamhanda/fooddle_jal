@@ -1,0 +1,23 @@
+{
+  "name": "fooddle-server",
+  "version": "1.0.0",
+  "description": "Fooddle Backend Server with Razorpay Integration",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["express", "razorpay", "payment", "api"],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "razorpay": "^2.9.6"
+  }
+}

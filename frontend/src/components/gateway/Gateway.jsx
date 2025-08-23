@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { CreditCard, Loader2, CheckCircle, XCircle, Lock, Shield, Phone } from 'lucide-react';
+import { CreditCard, Loader2, CheckCircle, XCircle, Lock, Shield, Phone, ExternalLink } from 'lucide-react';
 import { saveOrderData } from '../../api/googleSheetsService';
 import { PhoneInput } from '../index';
+import axios from 'axios';
 
 export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentFailure }) {
     const [isProcessing, setIsProcessing] = useState(false);
@@ -9,13 +10,46 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
     const [customerData, setCustomerData] = useState(null);
     const [showCustomerInput, setShowCustomerInput] = useState(true);
     const [error, setError] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' or 'simple'
 
     const handleCustomerSubmit = (customerInfo) => {
         setCustomerData(customerInfo);
         setShowCustomerInput(false);
     };
 
-    const handleSimulatePayment = async () => {
+    const handleRazorpayPayment = async () => {
+        if (amount <= 0) {
+            alert('Please select at least one bottle to proceed');
+            return;
+        }
+
+        setIsProcessing(true);
+        setPaymentStatus('processing');
+        
+        try {
+            // Create payment link via backend
+            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/create-payment-link`, {
+                amount,
+                quantity,
+                customerData
+            });
+
+            if (response.data.short_url) {
+                // Redirect to Razorpay payment page
+                window.location.href = response.data.short_url;
+            } else {
+                throw new Error('Failed to create payment link');
+            }
+        } catch (error) {
+            console.error('Error creating payment link:', error);
+            setPaymentStatus('error');
+            setError('Failed to initiate payment. Please try again.');
+            setIsProcessing(false);
+            if (onPaymentFailure) onPaymentFailure('Payment initiation failed');
+        }
+    };
+
+    const handleSimpleOrder = async () => {
         if (amount <= 0) {
             alert('Please select at least one bottle to proceed');
             return;
@@ -27,7 +61,7 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
         // Simulate processing time
         setTimeout(async () => {
             try {
-                // Update customer's order count and total amount in Google Sheets
+                // Save order to Google Sheets
                 const orderData = {
                     customerName: customerData.name,
                     customerEmail: customerData.email,
@@ -35,11 +69,21 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                     quantity,
                     amount,
                     timestamp: new Date().toISOString(),
-                    status: 'Order Placed'
+                    status: 'Order Placed (Simple)'
                 };
 
-                // Only update the order count/amount since customer is already saved
                 await saveOrderData(orderData);
+                
+                // Also save to backend if available
+                try {
+                    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/create-order`, {
+                        amount,
+                        quantity,
+                        customerData
+                    });
+                } catch (backendError) {
+                    console.log('Backend not available, order saved to Google Sheets only');
+                }
                 
                 setPaymentStatus('success');
                 if (onPaymentSuccess) {
@@ -143,6 +187,51 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                     </div>
                 </div>
 
+                {/* Payment Method Selection */}
+                {paymentStatus !== 'success' && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl mb-6 border border-blue-100">
+                        <h4 className="text-lg font-semibold text-indigo-800 mb-4">Choose Payment Method</h4>
+                        <div className="space-y-3">
+                            <label className="flex items-center space-x-3 p-3 border border-indigo-200 rounded-xl hover:bg-indigo-50 cursor-pointer transition-all">
+                                <input
+                                    type="radio"
+                                    name="paymentMethod"
+                                    value="razorpay"
+                                    checked={paymentMethod === 'razorpay'}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    className="text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <div className="flex-1">
+                                    <div className="font-semibold text-indigo-800 flex items-center">
+                                        <CreditCard className="mr-2" size={18} />
+                                        Online Payment (Razorpay)
+                                        <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Recommended</span>
+                                    </div>
+                                    <div className="text-sm text-gray-600">Secure payment via UPI, Cards, Net Banking</div>
+                                </div>
+                            </label>
+                            
+                            <label className="flex items-center space-x-3 p-3 border border-indigo-200 rounded-xl hover:bg-indigo-50 cursor-pointer transition-all">
+                                <input
+                                    type="radio"
+                                    name="paymentMethod"
+                                    value="simple"
+                                    checked={paymentMethod === 'simple'}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    className="text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <div className="flex-1">
+                                    <div className="font-semibold text-indigo-800 flex items-center">
+                                        <Phone className="mr-2" size={18} />
+                                        Quick Order (Contact Based)
+                                    </div>
+                                    <div className="text-sm text-gray-600">Place order now, pay on delivery</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                )}
+
                 {/* Status Messages */}
                 {paymentStatus === 'success' && (
                     <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-4 rounded-2xl mb-6 flex items-center shadow-sm">
@@ -164,30 +253,57 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                     </div>
                 )}
 
-                {/* Place Order Button */}
+                {/* Payment Button */}
                 {paymentStatus !== 'success' && (
-                    <button
-                        onClick={handleSimulatePayment}
-                        disabled={isProcessing || amount <= 0}
-                        className={`w-full py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-3 ${
-                            isProcessing || amount <= 0
-                                ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                                : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-green-500/25 text-white'
-                        }`}
-                    >
-                        {isProcessing ? (
-                            <>
-                                <Loader2 className="animate-spin" size={24} />
-                                <span>Processing Order...</span>
-                            </>
+                    <div className="space-y-3">
+                        {paymentMethod === 'razorpay' ? (
+                            <button
+                                onClick={handleRazorpayPayment}
+                                disabled={isProcessing || amount <= 0}
+                                className={`w-full py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-3 ${
+                                    isProcessing || amount <= 0
+                                        ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                        : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:shadow-blue-500/25 text-white'
+                                }`}
+                            >
+                                {isProcessing ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={24} />
+                                        <span>Redirecting to Payment...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CreditCard size={20} />
+                                        <span>Pay Now ₹{amount}</span>
+                                        <ExternalLink size={16} />
+                                    </>
+                                )}
+                            </button>
                         ) : (
-                            <>
-                                <CreditCard size={20} />
-                                <span>Place Order ₹{amount}</span>
-                                <CheckCircle size={20} />
-                            </>
+                            <button
+                                onClick={handleSimpleOrder}
+                                disabled={isProcessing || amount <= 0}
+                                className={`w-full py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-3 ${
+                                    isProcessing || amount <= 0
+                                        ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                        : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-green-500/25 text-white'
+                                }`}
+                            >
+                                {isProcessing ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={24} />
+                                        <span>Processing Order...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Phone size={20} />
+                                        <span>Place Order ₹{amount}</span>
+                                        <CheckCircle size={20} />
+                                    </>
+                                )}
+                            </button>
                         )}
-                    </button>
+                    </div>
                 )}
 
                 {/* Info */}
@@ -195,7 +311,11 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                     <div className="flex items-center justify-center space-x-4 text-sm text-gray-500 mb-2">
                         <div className="flex items-center space-x-1">
                             <Shield size={14} />
-                            <span>Secure Order</span>
+                            <span>Secure</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                            <Lock size={14} />
+                            <span>Encrypted</span>
                         </div>
                         <div className="flex items-center space-x-1">
                             <Phone size={14} />
@@ -203,7 +323,10 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                         </div>
                     </div>
                     <p className="text-sm text-gray-500">
-                        Your order will be saved and we'll contact you for <span className="font-semibold text-blue-600">delivery arrangements</span>
+                        {paymentMethod === 'razorpay' 
+                            ? 'Your payment is processed securely through Razorpay with industry-standard encryption'
+                            : 'Your order will be saved and we\'ll contact you for delivery arrangements'
+                        }
                     </p>
                 </div>
             </div>

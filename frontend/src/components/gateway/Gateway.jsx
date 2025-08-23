@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CreditCard, Loader2, CheckCircle, XCircle, Lock, Shield, Phone } from 'lucide-react';
-import { paymentAPI, getRazorpayKey } from '../../api/paymentService';
+// import { paymentAPI, getRazorpayKey } from '../../api/paymentService';
 import { saveOrderData } from '../../api/googleSheetsService';
 import { PhoneInput } from '../index';
 
@@ -56,113 +56,35 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
         }
     };
 
-    // Initialize Razorpay payment
-    const initiatePayment = async () => {
+    // UPI Deep Link Payment
+    const upiVPA = "prathamhanda10@okhdfcbank"; // TODO: Replace with your UPI ID
+    const upiName = "Fooddle";
+    const upiNote = `Payment for ${quantity} Water Bottle${quantity !== 1 ? 's' : ''}`;
+
+    const initiatePayment = () => {
         if (amount <= 0) {
             alert('Please select at least one bottle to proceed with payment');
             return;
         }
-
         setIsProcessing(true);
         setPaymentStatus('');
 
-        try {
-            // Create order using API service
-            const orderResponse = await paymentAPI.createOrder({
-                amount: amount * 100, // Razorpay expects amount in paise
-                currency: 'INR',
-                receipt: `receipt_${Date.now()}`,
-                phoneNumber: customerPhone,
-                notes: {
-                    bottles: quantity,
-                    product: 'Water Bottles',
-                    customerPhone: customerPhone
-                }
-            });
-
-            const { order_id, amount: orderAmount, currency } = orderResponse.data;
-
-            // Razorpay configuration
-            const options = {
-                key: getRazorpayKey(),
-                amount: orderAmount,
-                currency: currency,
-                name: 'Foodle-Jal',
-                description: `Payment for ${quantity} Water Bottles`,
-                order_id: order_id,
-                image: '/src/assets/logo.png', // Your company logo
-                handler: function (response) {
-                    // Payment successful callback
-                    verifyPayment(response);
-                },
-                prefill: {
-                    name: 'Customer',
-                    email: 'customer@foodle.com',
-                    contact: customerPhone // Use the provided phone number
-                },
-                theme: {
-                    color: '#4F46E5' // Indigo color matching your theme
-                },
-                modal: {
-                    ondismiss: function() {
-                        setIsProcessing(false);
-                        setPaymentStatus('cancelled');
-                    }
-                }
-            };
-
-            // Check if Razorpay is loaded
-            if (typeof window.Razorpay === 'undefined') {
-                throw new Error('Razorpay SDK not loaded. Please check your internet connection.');
-            }
-
-            // Open Razorpay checkout
-            const razorpay = new window.Razorpay(options);
-            razorpay.open();
-
-        } catch (error) {
-            console.error('Payment initiation failed:', error);
+        // Construct UPI deep link
+        const upiUrl = `upi://pay?pa=${encodeURIComponent(upiVPA)}&pn=${encodeURIComponent(upiName)}&am=${encodeURIComponent(amount)}&cu=INR&tn=${encodeURIComponent(upiNote)}`;
+        window.location.href = upiUrl;
+        // Optionally, you can also show a QR code for desktop users
+        setTimeout(() => {
             setIsProcessing(false);
-            setPaymentStatus('error');
-            if (onPaymentFailure) {
-                onPaymentFailure(error);
-            }
-        }
+            setPaymentStatus('pending');
+        }, 2000);
     };
 
-    // Verify payment using API service
-    const verifyPayment = async (response) => {
-        try {
-            console.log('🔍 Gateway: Starting payment verification...');
-            
-            const verificationResponse = await paymentAPI.verifyPayment({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
-            });
-
-            if (verificationResponse.data.success) {
-                console.log('✅ Gateway: Payment verified successfully');
-                
-                setPaymentStatus('success');
-                if (onPaymentSuccess) {
-                    onPaymentSuccess(response);
-                }
-            } else {
-                console.error('❌ Gateway: Payment verification failed');
-                setPaymentStatus('error');
-                if (onPaymentFailure) {
-                    onPaymentFailure('Payment verification failed');
-                }
-            }
-        } catch (error) {
-            console.error('❌ Gateway: Payment verification error:', error);
-            setPaymentStatus('error');
-            if (onPaymentFailure) {
-                onPaymentFailure(error);
-            }
+    // No server-side verification for UPI deep link. User must confirm manually.
+    const verifyPayment = () => {
+        setPaymentStatus('success');
+        if (onPaymentSuccess) {
+            onPaymentSuccess();
         }
-        setIsProcessing(false);
     };
 
     // Show phone input first
@@ -260,7 +182,7 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                         <CheckCircle className="mr-3 text-green-500" size={24} />
                         <div>
                             <div className="font-semibold">Payment Successful!</div>
-                            <div className="text-sm text-green-600">Your order has been confirmed and data saved</div>
+                            <div className="text-sm text-green-600">Your order has been confirmed</div>
                         </div>
                     </div>
                 )}
@@ -300,16 +222,25 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                     {isProcessing ? (
                         <>
                             <Loader2 className="animate-spin" size={24} />
-                            <span>Processing Payment...</span>
+                            <span>Opening UPI App...</span>
                         </>
                     ) : (
                         <>
                             <Lock size={20} />
-                            <span>Pay Securely ₹{amount}</span>
+                            <span>Pay via UPI ₹{amount}</span>
                             <CreditCard size={20} />
                         </>
                     )}
                 </button>
+                {/* Confirm Payment Button for UPI */}
+                {paymentStatus === 'pending' && (
+                    <button
+                        onClick={verifyPayment}
+                        className="w-full mt-4 py-3 px-6 rounded-2xl font-semibold text-lg bg-gradient-to-r from-indigo-500 to-blue-600 text-white hover:from-indigo-600 hover:to-blue-700 transition-all duration-300"
+                    >
+                        I have completed the payment
+                    </button>
+                )}
 
                 {/* Security badges */}
                 <div className="mt-6 text-center">
@@ -324,7 +255,7 @@ export default function Gateway({ amount, quantity, onPaymentSuccess, onPaymentF
                         </div>
                     </div>
                     <p className="text-sm text-gray-500">
-                        Powered by <span className="font-semibold text-blue-600">Razorpay</span> - India's most trusted payment gateway
+                        Powered by <span className="font-semibold text-blue-600">UPI</span> - India's trusted payment system
                     </p>
                 </div>
             </div>

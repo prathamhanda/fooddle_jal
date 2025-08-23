@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 import { BottleSelector, Branding, Header } from "./components";
-import image1 from "./assets/image.png"
+import image1 from "./assets/image1.png"
 
 function App() {
   const [count, setCount] = useState(0);

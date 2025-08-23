@@ -25,5 +25,5 @@ Students selected quantity, entered their phone number, and were redirected to a
 
 <p align="center">
   <img src="./frontend/src/assets/interface-1.png" width="45%" height="400px" />
-  <img src="./frontend/src/assets/interface-2.png" width="45%" height="317px" />
+  <img src="./frontend/src/assets/interface-2.png" width="45%" height="319px" />
 </p>

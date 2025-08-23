@@ -76,7 +76,7 @@ function getAllData() {
       return createResponse(true, 'No data found', { values: [] });
     }
     
-    const range = sheet.getRange(1, 1, lastRow, Math.max(lastCol, 5));
+    const range = sheet.getRange(1, 1, lastRow, Math.max(lastCol, 7));
     const values = range.getValues();
     
     return createResponse(true, 'Data retrieved successfully', { values: values });
@@ -104,14 +104,16 @@ function addRowFromParams(params) {
     // Initialize headers if needed
     initializeHeaders(sheet);
     
-    // Extract parameters
+    // Extract parameters - updated for new structure
+    const name = params.name || '';
+    const email = params.email || '';
     const phone = params.phone || '';
     const regDate = params.regDate || new Date().toISOString();
     const orders = params.orders || '1';
     const amount = params.amount || '0';
     const lastOrder = params.lastOrder || regDate;
     
-    const rowData = [phone, regDate, orders, amount, lastOrder];
+    const rowData = [name, email, phone, regDate, orders, amount, lastOrder];
     
     // Add the new row
     sheet.appendRow(rowData);
@@ -130,21 +132,23 @@ function updateRowFromParams(params) {
   try {
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getActiveSheet();
     
-    // Extract parameters
+    // Extract parameters - updated for new structure
     const rowIndex = parseInt(params.rowIndex);
+    const name = params.name || '';
+    const email = params.email || '';
     const phone = params.phone || '';
     const orders = params.orders || '1';
     const amount = params.amount || '0';
     const lastOrder = params.lastOrder || new Date().toISOString();
     
     // Get the current row to preserve registration date
-    const currentRow = sheet.getRange(rowIndex, 1, 1, 5).getValues()[0];
-    const regDate = currentRow[1] || new Date().toISOString();
+    const currentRow = sheet.getRange(rowIndex, 1, 1, 7).getValues()[0];
+    const regDate = currentRow[3] || new Date().toISOString(); // Registration date is now column D
     
-    const rowData = [phone, regDate, orders, amount, lastOrder];
+    const rowData = [name, email, phone, regDate, orders, amount, lastOrder];
     
     // Update the row
-    const range = sheet.getRange(rowIndex, 1, 1, 5);
+    const range = sheet.getRange(rowIndex, 1, 1, 7);
     range.setValues([rowData]);
     
     return createResponse(true, 'Row updated successfully', { 
@@ -166,7 +170,8 @@ function findRowByPhone(phoneNumber) {
     
     // Skip header row (index 0)
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0].toString() === phoneNumber.toString()) {
+      // Phone number is now in column C (index 2)
+      if (data[i][2].toString() === phoneNumber.toString()) {
         return createResponse(true, 'Phone number found', {
           rowIndex: i + 1, // Convert to 1-based index
           rowData: data[i]
@@ -183,18 +188,18 @@ function findRowByPhone(phoneNumber) {
 
 function initializeHeaders(sheet) {
   try {
-    const firstRow = sheet.getRange(1, 1, 1, 5).getValues()[0];
+    const firstRow = sheet.getRange(1, 1, 1, 7).getValues()[0];
     
     // Check if headers exist
-    const expectedHeaders = ['Phone Number', 'Registration Date', 'Total Orders', 'Total Amount', 'Last Order Date'];
+    const expectedHeaders = ['Name', 'Email', 'Phone Number', 'Registration Date', 'Total Orders', 'Total Amount', 'Last Order Date'];
     const needsHeaders = firstRow.every(cell => cell === '') || firstRow[0] !== expectedHeaders[0];
     
     if (needsHeaders) {
       console.log('Adding headers to sheet...');
-      sheet.getRange(1, 1, 1, 5).setValues([expectedHeaders]);
+      sheet.getRange(1, 1, 1, 7).setValues([expectedHeaders]);
       
       // Format headers
-      const headerRange = sheet.getRange(1, 1, 1, 5);
+      const headerRange = sheet.getRange(1, 1, 1, 7);
       headerRange.setFontWeight('bold');
       headerRange.setBackground('#4F46E5');
       headerRange.setFontColor('#FFFFFF');

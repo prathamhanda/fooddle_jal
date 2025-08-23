@@ -1,6 +1,6 @@
 # 📊 Google Sheets Integration
 
-This setup automatically saves customer phone numbers and order data to Google Sheets when payments are made through the Razorpay gateway.
+This setup automatically saves customer phone numbers and order data to Google Sheets when orders are placed through the website.
 
 ## 🚀 Setup Instructions
 
@@ -27,7 +27,6 @@ VITE_GOOGLE_APPS_SCRIPT_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID_HE
 
 ### Frontend Files:
 - `frontend/src/api/googleSheetsService.js` - Main service for Google Sheets operations
-- `frontend/src/api/paymentService.js` - Payment service with Google Sheets integration
 - `frontend/src/components/Header/header.jsx` - Header with initialization button
 
 ### Google Apps Script:
@@ -35,17 +34,17 @@ VITE_GOOGLE_APPS_SCRIPT_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID_HE
 
 ## 🔧 How It Works
 
-1. **Customer makes payment** through Razorpay gateway
-2. **Phone number is captured** during payment flow  
+1. **Customer places order** through the website
+2. **Phone number is captured** during order flow  
 3. **Data is automatically saved** to Google Sheets via Apps Script
 4. **Existing customers** get their order count and total amount updated
 5. **New customers** get added with their first order details
 
 ## 📊 Google Sheet Structure
 
-| Phone Number | Registration Date | Total Orders | Total Amount | Last Order Date |
-|--------------|------------------|--------------|---------------|-----------------|
-| 919876543210 | 2025-08-23       | 2            | ₹598          | 2025-08-23      |
+| Name         | Email            | Phone Number | Registration Date | Total Orders | Total Amount | Last Order Date |
+|--------------|------------------|--------------|-------------------|--------------|--------------|-----------------|
+| John Doe     | john@email.com   | 919876543210 | 2025-08-23        | 2            | ₹598         | 2025-08-23      |
 
 ## ⚡ Key Features
 

@@ -67,12 +67,25 @@ export default function Branding({ source }) {
     )
 }
 
-// PhoneInput component - temporarily placed here
+// CustomerInfoInput component - collects name, email, and phone
 export function PhoneInput({ onPhoneSubmit, storedData }) {
-    const [phoneNumber, setPhoneNumber] = React.useState('');
-    const [isValidPhone, setIsValidPhone] = React.useState(false);
+    const [formData, setFormData] = React.useState({
+        name: '',
+        email: '',
+        phone: ''
+    });
+    const [validation, setValidation] = React.useState({
+        name: false,
+        email: false,
+        phone: false
+    });
     const [isSubmitted, setIsSubmitted] = React.useState(false);
     const [isProcessing, setIsProcessing] = React.useState(false);
+
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
 
     const validatePhoneNumber = (phone) => {
         // Indian phone number validation: 10 digits, optionally starting with +91
@@ -80,25 +93,59 @@ export function PhoneInput({ onPhoneSubmit, storedData }) {
         return phoneRegex.test(phone.replace(/\s+/g, ''));
     };
 
-    const handlePhoneChange = (e) => {
-        const value = e.target.value.replace(/[^0-9+\s]/g, ''); // Only allow numbers, + and spaces
-        setPhoneNumber(value);
-        setIsValidPhone(validatePhoneNumber(value));
+    const validateName = (name) => {
+        return name.trim().length >= 2;
     };
+
+    const handleInputChange = (field, value) => {
+        const updatedFormData = { ...formData, [field]: value };
+        setFormData(updatedFormData);
+
+        // Update validation
+        const updatedValidation = { ...validation };
+        switch (field) {
+            case 'name':
+                updatedValidation.name = validateName(value);
+                break;
+            case 'email':
+                updatedValidation.email = validateEmail(value);
+                break;
+            case 'phone':
+                const cleanPhone = value.replace(/[^0-9+\s]/g, '');
+                updatedFormData.phone = cleanPhone;
+                setFormData(updatedFormData);
+                updatedValidation.phone = validatePhoneNumber(cleanPhone);
+                break;
+        }
+        setValidation(updatedValidation);
+    };
+
+    const isFormValid = validation.name && validation.email && validation.phone;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isValidPhone && !isProcessing) {
+        if (isFormValid && !isProcessing) {
             setIsProcessing(true);
-            const cleanPhone = phoneNumber.replace(/\s+/g, '');
             
             try {
-                // Automatically save to Excel and proceed
-                await onPhoneSubmit(cleanPhone);
+                const customerData = {
+                    name: formData.name.trim(),
+                    email: formData.email.trim(),
+                    phone: formData.phone.replace(/\s+/g, '')
+                };
+                
+                // Import and use the Google Sheets service directly
+                const { addCustomerToGoogleSheets } = await import('../../api/googleSheetsService.js');
+                
+                // Save customer data to Google Sheets immediately
+                await addCustomerToGoogleSheets(customerData.name, customerData.email, customerData.phone);
+                
+                // Pass customer data to parent component
+                await onPhoneSubmit(customerData);
                 setIsSubmitted(true);
             } catch (error) {
-                console.error('Error processing phone number:', error);
-                alert('Failed to process phone number. Please try again.');
+                console.error('Error processing customer information:', error);
+                alert('Failed to process information. Please try again.');
             } finally {
                 setIsProcessing(false);
             }
@@ -106,7 +153,6 @@ export function PhoneInput({ onPhoneSubmit, storedData }) {
     };
 
     const formatPhoneDisplay = (phone) => {
-        // Format phone number for display (XXX XXX XXXX)
         const cleaned = phone.replace(/\D/g, '');
         const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
         if (match) {
@@ -129,13 +175,15 @@ export function PhoneInput({ onPhoneSubmit, storedData }) {
                         </svg>
                     </div>
                     <h3 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-800 bg-clip-text text-transparent mb-2">
-                        Phone Number Saved!
+                        Information Saved!
                     </h3>
-                    <p className="text-gray-600 mb-4">
-                        Your phone number {formatPhoneDisplay(phoneNumber)} has been automatically saved to our secure database.
-                    </p>
+                    <div className="text-gray-600 mb-4 space-y-1">
+                        <p><strong>Name:</strong> {formData.name}</p>
+                        <p><strong>Email:</strong> {formData.email}</p>
+                        <p><strong>Phone:</strong> {formatPhoneDisplay(formData.phone)}</p>
+                    </div>
                     <p className="text-sm text-gray-500">
-                        Data securely stored for developers to access. Proceeding to payment...
+                        Your information has been securely saved. Proceeding to order...
                     </p>
                 </div>
             </div>
@@ -153,51 +201,47 @@ export function PhoneInput({ onPhoneSubmit, storedData }) {
                 <div className="text-center mb-6">
                     <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <svg className="text-white w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
                     <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-800 bg-clip-text text-transparent mb-2">
-                        Enter Your Phone Number
+                        Enter Your Information
                     </h2>
+                    <p className="text-gray-600 text-sm">We need your details to process your order</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Phone Input Field */}
+                    {/* Name Input Field */}
                     <div className="relative">
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                            Phone Number
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                            Full Name *
                         </label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </div>
                             <input
-                                type="tel"
-                                id="phone"
-                                value={phoneNumber}
-                                onChange={handlePhoneChange}
-                                placeholder="+91 98765 43210"
+                                type="text"
+                                id="name"
+                                value={formData.name}
+                                onChange={(e) => handleInputChange('name', e.target.value)}
+                                placeholder="Enter your full name"
                                 disabled={isProcessing}
                                 className={`w-full pl-12 pr-12 py-4 text-lg border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 ${
                                     isProcessing
                                         ? 'border-gray-300 bg-gray-100 cursor-not-allowed'
-                                        : phoneNumber === '' 
+                                        : formData.name === '' 
                                         ? 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                                        : isValidPhone
+                                        : validation.name
                                         ? 'border-green-500 focus:ring-green-500 bg-green-50'
                                         : 'border-red-500 focus:ring-red-500 bg-red-50'
                                 }`}
                             />
                             <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
-                                {isProcessing ? (
-                                    <svg className="animate-spin h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                ) : phoneNumber !== '' && (
-                                    isValidPhone ? (
+                                {formData.name !== '' && (
+                                    validation.name ? (
                                         <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
@@ -209,24 +253,122 @@ export function PhoneInput({ onPhoneSubmit, storedData }) {
                                 )}
                             </div>
                         </div>
-                        {phoneNumber !== '' && !isValidPhone && !isProcessing && (
+                        {formData.name !== '' && !validation.name && (
                             <p className="mt-2 text-sm text-red-600">
-                                Please enter a valid Indian phone number (10 digits)
-                            </p>
-                        )}
-                        {isValidPhone && !isProcessing && (
-                            <p className="mt-2 text-sm text-green-600">
-                                Valid phone number entered! Ready to proceed.
+                                Name must be at least 2 characters long
                             </p>
                         )}
                     </div>
 
-                    {/* Proceed Button */}
+                    {/* Email Input Field */}
+                    <div className="relative">
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                            Email Address *
+                        </label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+                            <input
+                                type="email"
+                                id="email"
+                                value={formData.email}
+                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                placeholder="example@email.com"
+                                disabled={isProcessing}
+                                className={`w-full pl-12 pr-12 py-4 text-lg border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 ${
+                                    isProcessing
+                                        ? 'border-gray-300 bg-gray-100 cursor-not-allowed'
+                                        : formData.email === '' 
+                                        ? 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                                        : validation.email
+                                        ? 'border-green-500 focus:ring-green-500 bg-green-50'
+                                        : 'border-red-500 focus:ring-red-500 bg-red-50'
+                                }`}
+                            />
+                            <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                                {formData.email !== '' && (
+                                    validation.email ? (
+                                        <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    )
+                                )}
+                            </div>
+                        </div>
+                        {formData.email !== '' && !validation.email && (
+                            <p className="mt-2 text-sm text-red-600">
+                                Please enter a valid email address
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Phone Input Field */}
+                    <div className="relative">
+                        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                            Phone Number *
+                        </label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                            </div>
+                            <input
+                                type="tel"
+                                id="phone"
+                                value={formData.phone}
+                                onChange={(e) => handleInputChange('phone', e.target.value)}
+                                placeholder="+91 98765 43210"
+                                disabled={isProcessing}
+                                className={`w-full pl-12 pr-12 py-4 text-lg border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 ${
+                                    isProcessing
+                                        ? 'border-gray-300 bg-gray-100 cursor-not-allowed'
+                                        : formData.phone === '' 
+                                        ? 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                                        : validation.phone
+                                        ? 'border-green-500 focus:ring-green-500 bg-green-50'
+                                        : 'border-red-500 focus:ring-red-500 bg-red-50'
+                                }`}
+                            />
+                            <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
+                                {isProcessing ? (
+                                    <svg className="animate-spin h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                ) : formData.phone !== '' && (
+                                    validation.phone ? (
+                                        <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                        </svg>
+                                    )
+                                )}
+                            </div>
+                        </div>
+                        {formData.phone !== '' && !validation.phone && (
+                            <p className="mt-2 text-sm text-red-600">
+                                Please enter a valid Indian phone number (10 digits)
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Submit Button */}
                     <button
                         type="submit"
-                        disabled={!isValidPhone || isProcessing}
+                        disabled={!isFormValid || isProcessing}
                         className={`w-full py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg flex items-center justify-center space-x-3 ${
-                            !isValidPhone || isProcessing
+                            !isFormValid || isProcessing
                                 ? 'bg-gray-300 cursor-not-allowed text-gray-500'
                                 : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-green-500/25 text-white'
                         }`}
@@ -244,13 +386,11 @@ export function PhoneInput({ onPhoneSubmit, storedData }) {
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                 </svg>
-                                <span>Proceed</span>
+                                <span>Continue to Order</span>
                             </>
                         )}
                     </button>
                 </form>
-
-                
             </div>
         </div>
     );
